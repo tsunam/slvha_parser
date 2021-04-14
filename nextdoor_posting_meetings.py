@@ -4,6 +4,7 @@ from io import BytesIO
 import requests
 from bs4 import BeautifulSoup
 from pdfminer.high_level import extract_text
+from pdfminer.layout import LAParams
 
 HEADERS = {
     'Accept':
@@ -25,22 +26,21 @@ response = requests.post('https://slvha.com/',
                          params=PARAMS,
                          data=DATA)
 
+
+layout_params = LAParams(line_margin=0.1)
+
 for fileupload in response.json():
     if 'wpfb-cat' in fileupload.get('text'):
         continue
     else:
-        filelist = BeautifulSoup(fileupload.get('text'))
+        filelist = BeautifulSoup(fileupload.get('text'),
+                                 features="html.parser")
         link = filelist.find('a')['href']
         print(link)
-        #response2 = requests.get(link)
-        #data = extract_text(BytesIO(response2.content))
-        #print('========================')
-        #print(data)
-        #print('========================')
 
         if datetime.date.today().strftime('%Y-%m') in link:
             response = requests.get(link)
-            data = extract_text(BytesIO(response.content))
+            data = extract_text(BytesIO(response.content), laparams=layout_params)
             print('========================')
             print(data)
             print('========================')
